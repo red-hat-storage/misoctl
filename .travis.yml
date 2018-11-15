@@ -14,3 +14,8 @@ install:
 script:
   - python setup.py test
 cache: pip
+addons:
+  apt:
+    packages:
+    - rpm
+    - librpm-dev
