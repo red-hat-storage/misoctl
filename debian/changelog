@@ -1,3 +1,9 @@
+misoctl (0.0.2-0ppa1) bionic; urgency=medium
+
+  * New release
+
+ -- Ken Dreyer <kdreyer@redhat.com>  Thu, 15 Nov 2018 15:44:48 -0700
+
 misoctl (0.0.1-0ppa1) bionic; urgency=medium
 
   * First bionic build
