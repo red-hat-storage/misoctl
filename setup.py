@@ -55,7 +55,9 @@ class BumpCommand(Command):
         old = 'Version:        %s' % metadata['version']
         new = 'Version:        %s' % self.version
 
-        cmd = ['dch', '-v', self.version, '-D', 'bionic', 'New release']
+        deb_version = '%s-0ppa1' % self.version
+        cmd = ['dch', '-v', deb_version, '-D', 'bionic', 'New release']
+
         subprocess.check_call(cmd)
 
         # Commit everything with a standard commit message
