@@ -55,6 +55,9 @@ class BumpCommand(Command):
         old = 'Version:        %s' % metadata['version']
         new = 'Version:        %s' % self.version
 
+        cmd = ['dch', '-v', self.version, '-D', 'bionic', 'New release']
+        subprocess.check_call(cmd)
+
         # Commit everything with a standard commit message
         cmd = ['git', 'commit', '-a', '-m', 'version %s' % self.version]
         print(' '.join(cmd))
