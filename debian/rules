@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+
+export PYBUILD_NAME=misoctl
+export PYBUILD_TEST_PYTEST=1
+export PYBUILD_TEST_ARGS=-s {dir}/misoctl/tests/
+
+%:
+	dh $@ --with python2 --buildsystem=pybuild
