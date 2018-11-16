@@ -51,7 +51,7 @@ As a Koji administrator:
    <https://pagure.io/koji/pull-request/1149>` on the Koji hub)::
 
       koji call addArchiveType deb "Debian packages" deb
-      koji call addArchiveType dsc "Debian source contro files" dsc
+      koji call addArchiveType dsc "Debian source control files" dsc
 
 
 Now you can run ``misoctl upload`` as the ``rcm/debbuild`` system user.
