@@ -21,12 +21,11 @@ tagging the resulting build::
    gbp buildpackage ...
 
    # Upload the source and .deb artifacts into Koji:
-   cd ..
    misoctl upload \
      --scm-url=$SCM_URL \
      --owner=kdreyer \
      --tag=ceph-3.2-xenial-candidate \
-     ceph-ansible/
+     ../
 
 To run this utility, you must authenticate to Koji as a user account that has
 permission to upload to the "debian" content generator.
