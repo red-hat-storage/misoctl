@@ -286,7 +286,7 @@ def main(args):
 
     tag = args.tag
     if tag:
-        verify_tag(tag)
+        verify_tag(tag, session)
 
     # Discover our files on disk
     dsc_file = find_dsc_file(directory)
