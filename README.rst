@@ -38,8 +38,8 @@ You must configure your Koji instance to accept debian builds.
 
 As a Koji administrator:
 
-1. Allow "debian" content-generator access to a system account. In this case
-   ours is named "rcm/debbuild"::
+1. Allow "debian" content-generator access to a system user account. In this
+   case, our system user account is named "rcm/debbuild"::
 
       koji grant-cg-access rcm/debbuild debian
 
