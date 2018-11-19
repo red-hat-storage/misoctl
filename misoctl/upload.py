@@ -323,6 +323,11 @@ def main(args):
 
     # TODO: check if this build already exists in Koji before uploading here
 
+    if args.dryrun:
+        log.info('dryrun: would upload')
+        for filename in all_files:
+            log.info(filename)
+        raise SystemExit()
     buildinfo = cg_import(all_files, metadata, session)
     log.info('CGImport result:')
     log.info(str(buildinfo))
