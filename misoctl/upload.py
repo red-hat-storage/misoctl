@@ -3,6 +3,9 @@ from hashlib import md5
 import json
 import os
 import shutil
+import datetime
+import dateutil.parser
+import dateutil.tz
 from debian import deb822
 from koji_cli.lib import _progress_callback
 from koji_cli.lib import watch_tasks
@@ -29,6 +32,10 @@ def add_parser(subparsers):
                         help='tag this build, eg. ceph-3.2-xenial-candidate')
     parser.add_argument('--dryrun', action='store_true',
                         help="Show what would happen, but don't do it")
+    parser.add_argument('--skip-log', action='store_true',
+                        help="Do not upload a .build log file")
+    parser.add_argument('--datetime',
+                        help="Set the start and end datetime value")
     parser.add_argument('directory', help="parent directory of a .dsc file")
     parser.set_defaults(func=main)
 
@@ -126,7 +133,8 @@ def find_source_files(dsc, directory):
     for f in dsc['Files']:
         filename = f['name']
         path = os.path.join(directory, filename)
-        assert os.path.isfile(path)
+        if not os.path.isfile(path):
+            log.error('dsc file references non-existent %s' % path)
         result.add(path)
     return result
 
@@ -288,13 +296,20 @@ def main(args):
     if tag:
         verify_tag(tag, session)
 
+    if args.skip_log and not args.datetime:
+        # If we have no log, the user must tell us the build start/end time.
+        raise SystemExit('--skip-log requires --datetime')
+
     # Discover our files on disk
     dsc_file = find_dsc_file(directory)
     dsc = parse_dsc(dsc_file)
     source_files = find_source_files(dsc, directory)
     deb_files = find_deb_files(directory)
-    log_file = find_log_file(directory)
-    log_file = rename_log_file(log_file)
+    log_files = set()
+    if not args.skip_log:
+        log_file = find_log_file(directory)
+        log_file = rename_log_file(log_file)
+        log_files.add(log_file)
 
     # Bail early if this build already exists
     nvr = '%(Source)s-%(Version)s' % dsc
@@ -302,7 +317,16 @@ def main(args):
         raise RuntimeError('%s exists in %s' % (nvr, args.profile))
 
     # Determine build metadata
-    (start_time, end_time) = get_build_times(log_file)
+    if args.datetime:
+        my_datetime = dateutil.parser.parse(args.datetime)
+        epoch = datetime.datetime(1970, 1, 1, tzinfo=dateutil.tz.UTC)
+        total_seconds = (my_datetime - epoch).total_seconds()
+        # This is not optimial, because the start and end times are the same,
+        # so it looks as if the build took zero seconds.
+        start_time = total_seconds
+        end_time = total_seconds
+    else:
+        (start_time, end_time) = get_build_times(log_file)
     scm_url = args.scm_url
     build = get_build_data(dsc, start_time, end_time, scm_url, owner)
 
@@ -310,7 +334,6 @@ def main(args):
     buildroots = get_buildroots()
 
     # Determine output metadata
-    log_files = set([log_file])
     dsc_files = set([dsc_file])
     all_files = set.union(dsc_files, source_files, deb_files, log_files)
     output = get_output_data(all_files)

@@ -159,6 +159,7 @@ setup(
     ],
     install_requires=[
         'koji>=1.16.0',
+        'python-dateutil',
         'python-debian',
     ],
     tests_require=[
