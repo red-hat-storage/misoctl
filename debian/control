@@ -5,7 +5,7 @@ Priority: optional
 Build-Depends:
  debhelper (>= 7.4.3),
  dh-python,
- koji-client,
+ koji-client (>= 1.16),
  python-all,
  python-debian,
  python-pytest,
@@ -15,5 +15,5 @@ X-Python-Version: >=2.7
 
 Package: python-misoctl
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, koji-client
+Depends: ${misc:Depends}, ${python:Depends}, koji-client (>= 1.16)
 Description: Koji Content Generator for Debian builds
