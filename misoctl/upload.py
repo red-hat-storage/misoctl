@@ -136,6 +136,9 @@ def find_source_files(dsc, directory):
         # Sanity-check the file while we're here:
         if not os.path.isfile(path):
             raise RuntimeError('dsc file references non-existent %s' % path)
+        md5sum = get_md5sum(path)
+        if md5sum != f['md5sum']:
+            raise RuntimeError('dsc file md5sum mismatch on %s' % path)
         result.add(path)
     return result
 
