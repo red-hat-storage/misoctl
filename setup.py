@@ -158,7 +158,7 @@ setup(
                  'Programming Language :: Python :: 3.6',
     ],
     install_requires=[
-        'koji',
+        'koji>=1.16.0',
         'python-debian',
     ],
     tests_require=[
