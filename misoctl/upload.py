@@ -135,7 +135,7 @@ def find_source_files(dsc, directory):
         path = os.path.join(directory, filename)
         # Sanity-check the file while we're here:
         if not os.path.isfile(path):
-            log.error('dsc file references non-existent %s' % path)
+            raise RuntimeError('dsc file references non-existent %s' % path)
         result.add(path)
     return result
 
