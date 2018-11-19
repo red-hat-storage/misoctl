@@ -10,11 +10,13 @@ Build-Depends:
  python-dateutil,
  python-debian,
  python-pytest,
+ python-requests,
  python-setuptools
 Standards-Version: 3.9.5
 X-Python-Version: >=2.7
 
 Package: python-misoctl
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, koji-client (>= 1.16)
+Depends: ${misc:Depends}, ${python:Depends}, koji-client (>= 1.16),
+ python-requests
 Description: Koji Content Generator for Debian builds
