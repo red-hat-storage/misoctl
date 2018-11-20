@@ -362,9 +362,9 @@ def main(args):
             log.info(filename)
         raise SystemExit()
     buildinfo = cg_import(all_files, metadata, session)
-    log.info('imported %(name)s-%(version)s-%(release)' % buildinfo)
+    log.info('imported %(name)s-%(version)s-%(release)s' % buildinfo)
 
     if tag:
         tag_build(buildinfo, tag, session)
     else:
-        log.info('not tagging %(name)s-%(version)s-%(release)' % buildinfo)
+        log.info('not tagging %(name)s-%(version)s-%(release)s' % buildinfo)
