@@ -266,7 +266,14 @@ def upload(all_files, session):
 
 
 def cg_import(all_files, metadata, session):
-    """ Import all files into this Koji content generator. """
+    """
+    Import all files into this Koji content generator.
+
+    :param all_files: set of files to upload and import
+    :param metadata: path to metadata json file
+    :param session: Koji session
+    :returns: buildinfo (dict) from Koji's CGImport call
+    """
     remote_directory = upload(all_files, session)
     buildinfo = session.CGImport(metadata, remote_directory)
     if not buildinfo:
