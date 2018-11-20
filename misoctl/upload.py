@@ -256,11 +256,9 @@ def upload(all_files, session):
     log.info('uploading files to %s' % remote_directory)
 
     for filename in all_files:
-        basename = os.path.basename(filename)
-        remote_path = os.path.join(remote_directory, basename)
         callback = _progress_callback
         log.info("Uploading %s" % filename)
-        session.uploadWrapper(filename, remote_path, callback=callback)
+        session.uploadWrapper(filename, remote_directory, callback=callback)
         if callback:
             print('')
     return remote_directory
