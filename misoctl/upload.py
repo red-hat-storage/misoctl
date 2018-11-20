@@ -285,7 +285,7 @@ def tag_build(buildinfo, tag, session):
     nvr = '%(name)s-%(version)s-%(release)s' % buildinfo
     log.info('tagging %s into %s' % (nvr, tag))
     task_id = session.tagBuild(tag, nvr)
-    task_result = watch_tasks(session, [task_id], {'poll_interval': 15})
+    task_result = watch_tasks(session, [task_id], poll_interval=15)
     if task_result != 0:
         raise RuntimeError('failed to tag builds')
 
