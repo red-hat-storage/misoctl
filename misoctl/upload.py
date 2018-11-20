@@ -263,6 +263,7 @@ def upload(all_files, session):
         session.uploadWrapper(filename, remote_path, callback=callback)
         if callback:
             print('')
+    return remote_directory
 
 
 def cg_import(all_files, metadata, session):
