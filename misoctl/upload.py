@@ -70,7 +70,7 @@ def parse_dsc(dsc_file):
 
 def get_build_data(dsc, start_time, end_time, scm_url, owner):
     """ Return a dict of build information, for the CG metadata. """
-    name = dsc['Source']
+    name = '%s-deb' % dsc['Source']
     version, release = dsc['Version'].split('-')
     info = {
         'name': name,
@@ -316,7 +316,7 @@ def main(args):
         log_files.add(log_file)
 
     # Bail early if this build already exists
-    nvr = '%(Source)s-%(Version)s' % dsc
+    nvr = '%(Source)s-deb-%(Version)s' % dsc
     if session.getBuild(nvr):
         raise RuntimeError('%s exists in %s' % (nvr, args.profile))
 
