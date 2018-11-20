@@ -356,8 +356,7 @@ def main(args):
             log.info(filename)
         raise SystemExit()
     buildinfo = cg_import(all_files, metadata, session)
-    log.info('CGImport result:')
-    log.info(str(buildinfo))
+    log.info('imported %(name)s-%(version)s-%(release)' % buildinfo)
 
     if tag:
         tag_build(buildinfo, tag, session)
