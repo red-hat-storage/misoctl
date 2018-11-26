@@ -9,6 +9,14 @@ Find and parse various debian build files for information.
 """
 
 
+class NoFilesFoundError(Exception):
+    pass
+
+
+class MultipleFilesFoundError(Exception):
+    pass
+
+
 def find_deb_files(directory):
     """ Find the paths to all the .debs in this directory """
     search_path = os.path.join(directory, '*.deb')
@@ -35,12 +43,12 @@ def find_one_file(extension, directory):
     search_path = os.path.join(directory, '*.%s' % extension)
     results = glob(search_path)
     if len(results) < 1:
-        raise RuntimeError('could not find a .%s file in %s' %
-                           (extension, directory))
+        raise NoFilesFoundError('could not find a .%s file in %s' %
+                                (extension, directory))
     if len(results) > 1:
         log.error(results)
-        raise RuntimeError('multiple .%s files in %s' %
-                           (extension, directory))
+        raise MultipleFilesFoundError('multiple .%s files in %s' %
+                                      (extension, directory))
     return results[0]
 
 
