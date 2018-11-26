@@ -290,6 +290,73 @@ def tag_build(buildinfo, tag, session):
         raise RuntimeError('failed to tag builds')
 
 
+def import_from_directory(directory, session, owner, skip_log, time_override,
+                          scm_url, dryrun):
+    """
+    Import the build artifacts in this directory into a Koji CG build.
+
+    :param directory: dir containing the build artifacts, with one dsc file.
+    :param session: Koji session.
+    :param owner: Koji user to own this imported build.
+    :param skip_log: Don't try to import log files for this build.
+    :param time_override: If not None, forge the datetime for this build.
+    :param scm_url: SCM (dist-git) url for this build.
+    :param dryrun: show what would be done, but don't do it.
+    """
+    # Discover our files on disk
+    dsc_file = find_dsc_file(directory)
+    dsc = parse_dsc(dsc_file)
+    source_files = find_source_files(dsc, directory)
+    deb_files = find_deb_files(directory)
+    log_files = set()
+    if not skip_log:
+        log_file = find_log_file(directory)
+        log_file = rename_log_file(log_file)
+        log_files.add(log_file)
+
+    # Bail early if this build already exists
+    nvr = '%(Source)s-deb-%(Version)s' % dsc
+    if session.getBuild(nvr):
+        raise RuntimeError('%s build exists in koji' % nvr)
+
+    # Determine build metadata
+    if time_override:
+        my_datetime = dateutil.parser.parse(time_override)
+        epoch = datetime.datetime(1970, 1, 1, tzinfo=dateutil.tz.UTC)
+        total_seconds = (my_datetime - epoch).total_seconds()
+        # This is not optimial, because the start and end times are the same,
+        # so it looks as if the build took zero seconds.
+        start_time = total_seconds
+        end_time = total_seconds
+    else:
+        (start_time, end_time) = get_build_times(log_file)
+    build = get_build_data(dsc, start_time, end_time, scm_url, owner)
+
+    # Determine buildroot metadata
+    buildroots = get_buildroots()
+
+    # Determine output metadata
+    dsc_files = set([dsc_file])
+    all_files = set.union(dsc_files, source_files, deb_files, log_files)
+    output = get_output_data(all_files)
+
+    # Generate the main metdata JSON
+    metadata = get_metadata(build, buildroots, output)
+    with open('metadata.json', 'w') as f:
+        json.dump(metadata, f)
+    all_files.add('metadata.json')
+
+    # TODO: check if this build already exists in Koji before uploading here
+
+    if dryrun:
+        log.info('dryrun: would upload')
+        for filename in all_files:
+            log.info(filename)
+        return {}
+    buildinfo = cg_import(all_files, metadata, session)
+    return buildinfo
+
+
 def main(args):
 
     # Pre-flight checks
@@ -311,58 +378,13 @@ def main(args):
         # If we have no log, the user must tell us the build start/end time.
         raise SystemExit('--skip-log requires --datetime')
 
-    # Discover our files on disk
-    dsc_file = find_dsc_file(directory)
-    dsc = parse_dsc(dsc_file)
-    source_files = find_source_files(dsc, directory)
-    deb_files = find_deb_files(directory)
-    log_files = set()
-    if not args.skip_log:
-        log_file = find_log_file(directory)
-        log_file = rename_log_file(log_file)
-        log_files.add(log_file)
-
-    # Bail early if this build already exists
-    nvr = '%(Source)s-deb-%(Version)s' % dsc
-    if session.getBuild(nvr):
-        raise RuntimeError('%s exists in %s' % (nvr, args.profile))
-
-    # Determine build metadata
-    if args.datetime:
-        my_datetime = dateutil.parser.parse(args.datetime)
-        epoch = datetime.datetime(1970, 1, 1, tzinfo=dateutil.tz.UTC)
-        total_seconds = (my_datetime - epoch).total_seconds()
-        # This is not optimial, because the start and end times are the same,
-        # so it looks as if the build took zero seconds.
-        start_time = total_seconds
-        end_time = total_seconds
-    else:
-        (start_time, end_time) = get_build_times(log_file)
-    scm_url = args.scm_url
-    build = get_build_data(dsc, start_time, end_time, scm_url, owner)
-
-    # Determine buildroot metadata
-    buildroots = get_buildroots()
-
-    # Determine output metadata
-    dsc_files = set([dsc_file])
-    all_files = set.union(dsc_files, source_files, deb_files, log_files)
-    output = get_output_data(all_files)
-
-    # Generate the main metdata JSON
-    metadata = get_metadata(build, buildroots, output)
-    with open('metadata.json', 'w') as f:
-        json.dump(metadata, f)
-    all_files.add('metadata.json')
-
-    # TODO: check if this build already exists in Koji before uploading here
-
-    if args.dryrun:
-        log.info('dryrun: would upload')
-        for filename in all_files:
-            log.info(filename)
-        raise SystemExit()
-    buildinfo = cg_import(all_files, metadata, session)
+    buildinfo = import_from_directory(directory,
+                                      session,
+                                      args.owner,
+                                      args.skip_log,
+                                      args.datetime,
+                                      args.scm_url,
+                                      args.dryrun)
     log.info('imported %(name)s-%(version)s-%(release)s' % buildinfo)
 
     if tag:
