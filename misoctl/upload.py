@@ -1,5 +1,4 @@
 from glob import glob
-from hashlib import md5
 import json
 import os
 import shutil
@@ -14,6 +13,7 @@ try:
     from koji_cli.lib import unique_path
 except ImportError:
     from koji_cli.lib import _unique_path as unique_path
+from misoctl import util
 import misoctl.session
 from misoctl.log import log as log
 
@@ -38,16 +38,6 @@ def add_parser(subparsers):
                         help="Set the start and end datetime value")
     parser.add_argument('directory', help="parent directory of a .dsc file")
     parser.set_defaults(func=main)
-
-
-def get_md5sum(filename):
-    """ Return the hex md5 digest for a file. """
-    chsum = md5()
-    with open(filename, 'rb') as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            chsum.update(chunk)
-    digest = chsum.hexdigest()
-    return digest
 
 
 def find_dsc_file(directory):
@@ -106,7 +96,7 @@ def get_file_info(filename):
     info['filesize'] = int(fbytes)
     # Kojihub only supports checksum_type: md5 for now.
     info['checksum_type'] = 'md5'
-    checksum = get_md5sum(filename)
+    checksum = util.get_md5sum(filename)
     info['checksum'] = checksum
     info['arch'] = 'x86_64'
     if filename.endswith('.tar.gz') or filename.endswith('.tar.xz'):
@@ -136,7 +126,7 @@ def find_source_files(dsc, directory):
         # Sanity-check the file while we're here:
         if not os.path.isfile(path):
             raise RuntimeError('dsc file references non-existent %s' % path)
-        md5sum = get_md5sum(path)
+        md5sum = util.get_md5sum(path)
         if md5sum != f['md5sum']:
             raise RuntimeError('dsc file md5sum mismatch on %s' % path)
         result.add(path)
