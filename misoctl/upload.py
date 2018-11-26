@@ -1,9 +1,6 @@
 import json
 import os
 import shutil
-import datetime
-import dateutil.parser
-import dateutil.tz
 from koji_cli.lib import _progress_callback
 from koji_cli.lib import watch_tasks
 try:
@@ -33,8 +30,6 @@ def add_parser(subparsers):
                         help="Show what would happen, but don't do it")
     parser.add_argument('--skip-log', action='store_true',
                         help="Do not upload a .build log file")
-    parser.add_argument('--datetime',
-                        help="Set the start and end datetime value")
     parser.add_argument('directory', help="parent directory of a .dsc file")
     parser.set_defaults(func=main)
 
@@ -200,8 +195,8 @@ def tag_build(buildinfo, tag, session):
         raise RuntimeError('failed to tag builds')
 
 
-def import_from_directory(directory, session, owner, skip_log, time_override,
-                          scm_url, dryrun):
+def import_from_directory(directory, session, owner, skip_log, scm_url,
+                          dryrun):
     """
     Import the build artifacts in this directory into a Koji CG build.
 
@@ -209,7 +204,6 @@ def import_from_directory(directory, session, owner, skip_log, time_override,
     :param session: Koji session.
     :param owner: Koji user to own this imported build.
     :param skip_log: Don't try to import log files for this build.
-    :param time_override: If not None, forge the datetime for this build.
     :param scm_url: SCM (dist-git) url for this build.
     :param dryrun: show what would be done, but don't do it.
     """
@@ -219,8 +213,8 @@ def import_from_directory(directory, session, owner, skip_log, time_override,
     source_files = filemanager.find_source_files(dsc, directory)
     deb_files = filemanager.find_deb_files(directory)
     log_files = set()
-    if not skip_log:
-        log_file = filemanager.find_log_file(directory)
+    log_file = filemanager.find_log_file(directory, fatal=skip_log)
+    if log_file:
         log_file = rename_log_file(log_file)
         log_files.add(log_file)
 
@@ -230,16 +224,15 @@ def import_from_directory(directory, session, owner, skip_log, time_override,
         raise RuntimeError('%s build exists in koji' % nvr)
 
     # Determine build metadata
-    if time_override:
-        my_datetime = dateutil.parser.parse(time_override)
-        epoch = datetime.datetime(1970, 1, 1, tzinfo=dateutil.tz.UTC)
-        total_seconds = (my_datetime - epoch).total_seconds()
+    if log_file:
+        (start_time, end_time) = filemanager.get_build_times(log_file)
+    else:
         # This is not optimial, because the start and end times are the same,
         # so it looks as if the build took zero seconds.
-        start_time = total_seconds
-        end_time = total_seconds
-    else:
-        (start_time, end_time) = filemanager.get_build_times(log_file)
+        changes_file = filemanager.find_changes_file(directory)
+        changes_time = filemanager.get_changes_time(changes_file)
+        start_time = changes_time
+        end_time = changes_time
     build = get_build_data(dsc, start_time, end_time, scm_url, owner)
 
     # Determine buildroot metadata
@@ -284,15 +277,10 @@ def main(args):
     if tag:
         verify_tag(tag, session)
 
-    if args.skip_log and not args.datetime:
-        # If we have no log, the user must tell us the build start/end time.
-        raise SystemExit('--skip-log requires --datetime')
-
     buildinfo = import_from_directory(directory,
                                       session,
                                       args.owner,
                                       args.skip_log,
-                                      args.datetime,
                                       args.scm_url,
                                       args.dryrun)
     log.info('imported %(name)s-%(version)s-%(release)s' % buildinfo)

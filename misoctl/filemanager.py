@@ -1,5 +1,8 @@
 import os
 from glob import glob
+import datetime
+import dateutil.parser
+import dateutil.tz
 from debian import deb822
 from misoctl import util
 from misoctl.log import log as log
@@ -17,6 +20,11 @@ class MultipleFilesFoundError(Exception):
     pass
 
 
+def find_changes_file(directory):
+    """ Find the path to a .changes file in this directory. """
+    return find_one_file('changes', directory)
+
+
 def find_deb_files(directory):
     """ Find the paths to all the .debs in this directory """
     search_path = os.path.join(directory, '*.deb')
@@ -29,9 +37,13 @@ def find_dsc_file(directory):
     return find_one_file('dsc', directory)
 
 
-def find_log_file(directory):
+def find_log_file(directory, fatal=True):
     """ Find the path to a .build file in this directory. """
-    return find_one_file('build', directory)
+    try:
+        return find_one_file('build', directory)
+    except NoFilesFoundError:
+        if fatal:
+            raise
 
 
 def find_one_file(extension, directory):
@@ -88,6 +100,27 @@ def get_build_times(log_file):
     if not end_time:
         raise RuntimeError('could not find end time in %s' % log_file)
     return (start_time, end_time)
+
+
+def get_changes_time(changes_file):
+    """
+    Get the epoch seconds value from this .changes file.
+
+    :param changes_file: a Debian .changes file for this build.
+    :returns: number of seconds since the unix epoch
+    """
+    changes = parse_changes(changes_file)
+    changes_date = changes['Date']
+    my_datetime = dateutil.parser.parse(changes_date)
+    epoch = datetime.datetime(1970, 1, 1, tzinfo=dateutil.tz.UTC)
+    total_seconds = (my_datetime - epoch).total_seconds()
+    return total_seconds
+
+
+def parse_changes(changes_file):
+    """ Parse a changes file into a Changes class. """
+    with open(changes_file) as f:
+        return deb822.Changes(f)
 
 
 def parse_dsc(dsc_file):
