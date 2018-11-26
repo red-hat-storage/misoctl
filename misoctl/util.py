@@ -1,4 +1,17 @@
+import os
+import errno
 from hashlib import md5
+
+
+def ensure_directory(path):
+    """
+    Gracefully make a directory (and its parents), if it does not exist.
+    """
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
 
 
 def get_md5sum(filename):

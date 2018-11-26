@@ -36,8 +36,18 @@ def add_parser(subparsers):
 
 def get_build_data(dsc, start_time, end_time, scm_url, owner):
     """ Return a dict of build information, for the CG metadata. """
+    # Technically, Debian packages just have "Source" (ie name) and "Version"
+    # fields.
     name = '%s-deb' % dsc['Source']
-    version, release = dsc['Version'].split('-')
+    # Nothing mandates that all Debian packages must have a "-" in the Version
+    # field to split into Koji's concepts of "version" and "release". If we
+    # come across this pattern in a package, arbitrarily set the "release"
+    # value to "0" to satisfy Koji.
+    try:
+        version, release = dsc['Version'].split('-')
+    except ValueError:
+        version = dsc['Version']
+        release = '0'
     info = {
         'name': name,
         'version': version,

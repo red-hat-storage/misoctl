@@ -1,5 +1,6 @@
 import argparse
 import misoctl.upload
+import misoctl.sync_chacra
 
 
 def main():
@@ -13,6 +14,7 @@ def main():
 
     # add arguments for each subcommand:
     misoctl.upload.add_parser(subparsers)
+    misoctl.sync_chacra.add_parser(subparsers)
 
     args = parser.parse_args()
 

@@ -30,6 +30,45 @@ tagging the resulting build::
 To run this utility, you must authenticate to Koji as a user account that has
 permission to upload to the "debian" content generator.
 
+Example: Sync'ing many lists of builds
+--------------------------------------
+
+Use the "sync-chacra" command to sync several lists of builds into Koji::
+
+   # Clone a list of Debian builds Git:
+   git clone git://example.com/rhcs-metadata.git
+   cd rhcs-metadata
+
+   tree rhcs-metadata
+    rhcs-metadata/
+    ├── ceph-2
+    │   ├── builds-ceph-2.0-22986-trusty.txt
+    │   ├── builds-ceph-2.0-22986-xenial.txt
+    │   ├── builds-ceph-2.0-async-24474-trusty.txt
+    │   ├── builds-ceph-2.0-async-24474-xenial.txt
+    │   ├── builds-ceph-2.1-25020-trusty.txt
+    │   ├── builds-ceph-2.1-25020-xenial.txt
+    │   ├── builds-ceph-2.1-async-25856-trusty.txt
+    │   ├── builds-ceph-2.1-async-25856-xenial.txt
+    ...
+
+   # Crawl this tree of build .txt files, ensuring that all the builds exist in
+   # Koji:
+   misoctl sync-chacra \
+      --chacra-url https://chacra.example.com \
+      --scm-template "https://code.example.com/{name}" \
+      --owner kdreyer \
+      rhcs-metadata/
+
+Warning: if you run ``sync-chacra`` multiple times, Koji can update the
+"latest" build in a tag on each run. You may desire this behavior if you're
+using this in a limited way, only ever adding higher NVRs to your build txt
+lists over time. On the other hand, if you run it with a small subset of build
+txt lists, and then run it again with *older* build lists, this could end up
+tagging older builds as "newer". In other words, please use caution when using
+``sync-chacra``, and don't run it with build txt lists that are older than what
+you've already imported and tagged in Koji.
+
 Koji server configuration
 -------------------------
 
