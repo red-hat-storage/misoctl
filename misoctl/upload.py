@@ -1,11 +1,9 @@
-from glob import glob
 import json
 import os
 import shutil
 import datetime
 import dateutil.parser
 import dateutil.tz
-from debian import deb822
 from koji_cli.lib import _progress_callback
 from koji_cli.lib import watch_tasks
 try:
@@ -13,6 +11,7 @@ try:
     from koji_cli.lib import unique_path
 except ImportError:
     from koji_cli.lib import _unique_path as unique_path
+from misoctl import filemanager
 from misoctl import util
 import misoctl.session
 from misoctl.log import log as log
@@ -38,24 +37,6 @@ def add_parser(subparsers):
                         help="Set the start and end datetime value")
     parser.add_argument('directory', help="parent directory of a .dsc file")
     parser.set_defaults(func=main)
-
-
-def find_dsc_file(directory):
-    """ Find the path to a .dsc file in this directory.  """
-    return find_one_file('dsc', directory)
-
-
-def find_deb_files(directory):
-    """ Find the paths to all the .debs in this directory """
-    search_path = os.path.join(directory, '*.deb')
-    filenames = glob(search_path)
-    return set(filenames)
-
-
-def parse_dsc(dsc_file):
-    """ Parse a dsc file into a Dsc class. """
-    with open(dsc_file) as f:
-        return deb822.Dsc(f)
 
 
 def get_build_data(dsc, start_time, end_time, scm_url, owner):
@@ -117,27 +98,6 @@ def get_file_info(filename):
     return info
 
 
-def find_source_files(dsc, directory):
-    """ Find the paths to all the source files in this directory. """
-    result = set()
-    for f in dsc['Files']:
-        filename = f['name']
-        path = os.path.join(directory, filename)
-        # Sanity-check the file while we're here:
-        if not os.path.isfile(path):
-            raise RuntimeError('dsc file references non-existent %s' % path)
-        md5sum = util.get_md5sum(path)
-        if md5sum != f['md5sum']:
-            raise RuntimeError('dsc file md5sum mismatch on %s' % path)
-        result.add(path)
-    return result
-
-
-def find_log_file(directory):
-    """ Find the path to a .build file in this directory. """
-    return find_one_file('build', directory)
-
-
 def rename_log_file(log_file):
     """
     Rename a .build file to a .log file.
@@ -151,46 +111,6 @@ def rename_log_file(log_file):
     # I'm copying instead of renaming, for testing:
     shutil.copy(log_file, new_log_file)
     return new_log_file
-
-
-def find_one_file(extension, directory):
-    """
-    Search for one file with an extension in this directory.
-
-    Raise if we could not find exactly one.
-    """
-    search_path = os.path.join(directory, '*.%s' % extension)
-    results = glob(search_path)
-    if len(results) < 1:
-        raise RuntimeError('could not find a .%s file in %s' %
-                           (extension, directory))
-    if len(results) > 1:
-        log.error(results)
-        raise RuntimeError('multiple .%s files in %s' %
-                           (extension, directory))
-    return results[0]
-
-
-def get_build_times(log_file):
-    """ Return the start and end times from a pbuilder log file. """
-    start_time = None
-    end_time = None
-    with open(log_file) as f:
-        for line in f:
-            if line.startswith('I: pbuilder-time-stamp: '):
-                timestamp = int(line[24:].strip())
-                if start_time is None:
-                    start_time = timestamp
-                elif end_time is None:
-                    end_time = timestamp
-                else:
-                    log.error('reading %s' % log_file)
-                    raise RuntimeError('too many pbuilder-time-stamp lines')
-    if not start_time:
-        raise RuntimeError('could not find start time in %s' % log_file)
-    if not end_time:
-        raise RuntimeError('could not find end time in %s' % log_file)
-    return (start_time, end_time)
 
 
 def get_buildroots():
@@ -294,13 +214,13 @@ def import_from_directory(directory, session, owner, skip_log, time_override,
     :param dryrun: show what would be done, but don't do it.
     """
     # Discover our files on disk
-    dsc_file = find_dsc_file(directory)
-    dsc = parse_dsc(dsc_file)
-    source_files = find_source_files(dsc, directory)
-    deb_files = find_deb_files(directory)
+    dsc_file = filemanager.find_dsc_file(directory)
+    dsc = filemanager.parse_dsc(dsc_file)
+    source_files = filemanager.find_source_files(dsc, directory)
+    deb_files = filemanager.find_deb_files(directory)
     log_files = set()
     if not skip_log:
-        log_file = find_log_file(directory)
+        log_file = filemanager.find_log_file(directory)
         log_file = rename_log_file(log_file)
         log_files.add(log_file)
 
@@ -319,7 +239,7 @@ def import_from_directory(directory, session, owner, skip_log, time_override,
         start_time = total_seconds
         end_time = total_seconds
     else:
-        (start_time, end_time) = get_build_times(log_file)
+        (start_time, end_time) = filemanager.get_build_times(log_file)
     build = get_build_data(dsc, start_time, end_time, scm_url, owner)
 
     # Determine buildroot metadata
