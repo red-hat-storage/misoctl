@@ -37,7 +37,6 @@ Use the "sync-chacra" command to sync several lists of builds into Koji::
 
    # Clone a list of Debian builds Git:
    git clone git://example.com/rhcs-metadata.git
-   cd rhcs-metadata
 
    tree rhcs-metadata
     rhcs-metadata/
