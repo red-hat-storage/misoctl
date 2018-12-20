@@ -223,7 +223,7 @@ def import_from_directory(directory, session, owner, skip_log, scm_url,
     source_files = filemanager.find_source_files(dsc, directory)
     deb_files = filemanager.find_deb_files(directory)
     log_files = set()
-    log_file = filemanager.find_log_file(directory, fatal=skip_log)
+    log_file = filemanager.find_log_file(directory, fatal=not skip_log)
     if log_file:
         log_file = rename_log_file(log_file)
         log_files.add(log_file)
