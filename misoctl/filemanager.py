@@ -112,7 +112,8 @@ def get_changes_time(changes_file):
     changes = parse_changes(changes_file)
     changes_date = changes['Date']
     my_datetime = dateutil.parser.parse(changes_date)
-    epoch = datetime.datetime(1970, 1, 1, tzinfo=dateutil.tz.UTC)
+    utc = dateutil.tz.tzutc()
+    epoch = datetime.datetime(1970, 1, 1, tzinfo=utc)
     total_seconds = (my_datetime - epoch).total_seconds()
     return total_seconds
 
