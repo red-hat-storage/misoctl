@@ -198,7 +198,7 @@ def ensure_tagged(buildinfo, tags, session, dryrun):
         task_ids.append(task_id)
     task_result = watch_tasks(session, task_ids, poll_interval=15)
     if task_result != 0 and not dryrun:
-        raise RuntimeError('failed to tag builds')
+        raise RuntimeError('failed to tag build %s' % nvr)
 
 
 def compare_nvrs(a_nvr, b_nvr):
