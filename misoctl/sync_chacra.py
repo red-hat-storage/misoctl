@@ -196,6 +196,9 @@ def ensure_tagged(buildinfo, tags, session, dryrun):
             continue
         task_id = session.tagBuild(tag, nvr)
         task_ids.append(task_id)
+    if not task_ids:
+        # This build is already tagged into all the necessary tags.
+        return
     task_result = watch_tasks(session, task_ids, poll_interval=15)
     if task_result != 0 and not dryrun:
         raise RuntimeError('failed to tag build %s' % nvr)
