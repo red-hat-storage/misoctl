@@ -139,6 +139,16 @@ def find_all_nvrs(directory):
     return all_nvrs
 
 
+def get_koji_nvr(nvr):
+    """
+    Translate this Debian packaging NVR to a Koji build NVR.
+
+    "ceph_1.2-3" -> "ceph-deb-1.2-3"
+    """
+    koji_nvr = nvr.replace('_', '-deb-')
+    return koji_nvr
+
+
 def ensure_uploaded(nvr, chacra_url, rsession, session, owner, scm_template,
                     dryrun):
     """
@@ -152,7 +162,7 @@ def ensure_uploaded(nvr, chacra_url, rsession, session, owner, scm_template,
     :param scm_template: format string for this build's scm_url
     :param dryrun: if True, show what would have happened, but don't do it
     """
-    koji_nvr = nvr.replace('_', '-deb-')
+    koji_nvr = get_koji_nvr(nvr)
     # Check if this build exists in Koji
     buildinfo = session.getBuild(koji_nvr)
     if buildinfo:
