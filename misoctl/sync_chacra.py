@@ -144,8 +144,20 @@ def get_koji_nvr(nvr):
     Translate this Debian packaging NVR to a Koji build NVR.
 
     "ceph_1.2-3" -> "ceph-deb-1.2-3"
+    "ceph-deploy_1.2.3" -> "ceph-deploy-deb-1.2.3-0"
+
+    See upload.get_build_data(). Nothing mandates that all Debian packages
+    must have a "-" in the Version field to split into Koji's concepts of
+    "version" and "release". If we come across this pattern in a package,
+    arbitrarily set the "release" value to "0" to satisfy Koji.
     """
-    koji_nvr = nvr.replace('_', '-deb-')
+    name, version = nvr.split('_')
+    name = name + '-deb'
+    if '-' in version:
+        version, release = version.split('-')
+    else:
+        release = '0'
+    koji_nvr = '%s-%s-%s' % (name, version, release)
     return koji_nvr
 
 

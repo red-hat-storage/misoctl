@@ -5,6 +5,7 @@ from misoctl import sync_chacra
 KOJI_NVRS = [
     ('ceph_1.2-1', 'ceph-deb-1.2-1'),
     ('ceph-deploy_1.2-1', 'ceph-deploy-deb-1.2-1'),
+    ('ceph-deploy_1.2', 'ceph-deploy-deb-1.2-0'),
 ]
 
 
