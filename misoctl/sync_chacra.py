@@ -176,6 +176,11 @@ def ensure_uploaded(nvr, chacra_url, rsession, session, owner, scm_template,
 def ensure_tagged(buildinfo, tags, session, dryrun):
     """
     Ensure this build is tagged into Koji.
+
+    :param dict buildinfo: dict from getBuild with this name/version/release
+    :param list tags: list of tags for this build.
+    :param session: Koji session
+    :param bool dryrun: show what would happen, but don't do it.
     """
     task_ids = []
     nvr = '%(name)s-%(version)s-%(release)s' % buildinfo
