@@ -8,13 +8,13 @@ def get_session(profile):
     Return an authenticated Koji session
     """
     # Return a cached session, if available.
-    conf = koji.read_config(profile)
-    hub = conf['server']
-    session = koji.ClientSession(hub, {})
+    mykoji = koji.get_profile_module(profile)
+    opts = mykoji.grab_session_options(mykoji.config)
+    session = koji.ClientSession(mykoji.config.server, opts)
     # session.krb_login()
-    activate_session(session, conf)
+    activate_session(session, mykoji.config)
     assert session.logged_in
     userinfo = session.getLoggedInUser()
     username = userinfo['name']
-    log.info('authenticated to %s as %s' % (hub, username))
+    log.info('authenticated to %s as %s' % (mykoji.config.server, username))
     return session
