@@ -185,6 +185,12 @@ def ensure_tagged(buildinfo, tags, session, dryrun):
     task_ids = []
     nvr = '%(name)s-%(version)s-%(release)s' % buildinfo
     for tag in sorted(tags):
+        tagged_builds = session.listTagged(tag, package=buildinfo['name'],
+                                           type='debian')
+        tagged_nvrs = [tagged_build['nvr'] for tagged_build in tagged_builds]
+        if nvr in tagged_nvrs:
+            log.info('%s is already tagged into %s' % (nvr, tag))
+            continue
         log.info('tagging %s into %s' % (nvr, tag))
         if dryrun:
             continue
