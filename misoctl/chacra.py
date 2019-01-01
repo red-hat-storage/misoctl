@@ -15,12 +15,12 @@ def name_version(nvr):
 
     :raises: ValueError if this does not look like a valid package.
     """
-    try:
-        return nvr.split('_', 1)
-    except ValueError:
-        # Friendlier error message here:
-        err = '%s is not a valid package build N-V-R' % nvr
-        raise ValueError(err)
+    result = nvr.split('_')
+    if len(result) == 2:
+        return result
+    # Friendlier error message here:
+    err = '%s is not a valid package build N-V-R' % nvr
+    raise ValueError(err)
 
 
 def name_version_release(nvr):
