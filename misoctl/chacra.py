@@ -87,6 +87,8 @@ def verify_checksum(path, checksum):
 
     :param path: file to check
     :param checksum: expected checksum value
+    :returns: True if the checksum matches this file, or False if the checksum
+              does not match this file.
     """
     chsum = sha512()
     with open(path, 'rb') as f:
