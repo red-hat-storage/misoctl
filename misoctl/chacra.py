@@ -13,11 +13,12 @@ def name_version(nvr):
     """
     Split a Debian NVR into "name" and "version".
 
+    :returns: two-element tuple of "name" and "version" for this package.
     :raises: ValueError if this does not look like a valid package.
     """
     result = nvr.split('_')
     if len(result) == 2:
-        return result
+        return tuple(result)
     # Friendlier error message here:
     err = '%s is not a valid package build N-V-R' % nvr
     raise ValueError(err)
