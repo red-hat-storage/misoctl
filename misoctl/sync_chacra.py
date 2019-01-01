@@ -45,6 +45,8 @@ def add_parser(subparsers):
 
 
 def find_buildstxts(directory):
+    if not os.path.isdir(directory):
+        raise ValueError('%s is not a directory' % directory)
     buildstxts = set()
     for root, _, files in os.walk(directory):
         for filename in files:
@@ -246,17 +248,12 @@ def sort_nvrs(nvrs):
 
 
 def main(args):
-
-    # Pre-flight checks
-    directory = args.directory
-    assert os.path.isdir(directory)
-
     rsession = requests.Session()
     session = misoctl.session.get_session(args.profile)
 
     upload.verify_user(args.owner, session)
 
-    nvrs = find_all_nvrs(directory)
+    nvrs = find_all_nvrs(args.directory)
 
     sorted_nvrs = sort_nvrs(nvrs.keys())
 
