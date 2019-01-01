@@ -13,14 +13,14 @@ def name_version(nvr):
     """
     Split a Debian NVR into "name" and "version".
 
-    :raises RuntimeError if this does not look like a valid package.
+    :raises: ValueError if this does not look like a valid package.
     """
     try:
         return nvr.split('_', 1)
     except ValueError:
         # Friendlier error message here:
         err = '%s is not a valid package build N-V-R' % nvr
-        raise RuntimeError(err)
+        raise ValueError(err)
 
 
 def name_version_release(nvr):
