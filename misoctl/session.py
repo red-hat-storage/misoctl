@@ -10,7 +10,7 @@ def get_session(profile):
     # Return a cached session, if available.
     mykoji = koji.get_profile_module(profile)
     opts = mykoji.grab_session_options(mykoji.config)
-    session = koji.ClientSession(mykoji.config.server, opts)
+    session = mykoji.ClientSession(mykoji.config.server, opts)
     # Log in ("activate") this sesssion:
     # Note: this can raise SystemExit if there is a problem, eg with Kerberos:
     activate_session(session, mykoji.config)
