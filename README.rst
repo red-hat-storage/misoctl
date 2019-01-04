@@ -68,6 +68,36 @@ tagging older builds as "newer". In other words, please use caution when using
 ``sync-chacra``, and don't run it with build txt lists that are older than what
 you've already imported and tagged in Koji.
 
+
+Example: Finding missing build artifacts
+----------------------------------------
+
+Chacra might not contain all the files we need (because of various bugs in the
+build system over the years). Use the "missing-chacra" sub-command to
+sanity-check each build and report these inconsistencies::
+
+   # Clone a list of Debian builds Git:
+   git clone git://example.com/rhcs-metadata.git
+
+   tree rhcs-metadata
+    rhcs-metadata/
+    ├── ceph-2
+    │   ├── builds-ceph-2.0-22986-trusty.txt
+    │   ├── builds-ceph-2.0-22986-xenial.txt
+    │   ├── builds-ceph-2.0-async-24474-trusty.txt
+    │   ├── builds-ceph-2.0-async-24474-xenial.txt
+    │   ├── builds-ceph-2.1-25020-trusty.txt
+    │   ├── builds-ceph-2.1-25020-xenial.txt
+    ...
+
+   # Crawl this tree of build .txt files, ensuring that all artifacts exist:
+   misoctl missing-chacra \
+      --chacra-url https://chacra.example.com \
+      rhcs-metadata/
+
+This command only uses chacra. It does not use Koji at all.
+
+
 Koji server configuration
 -------------------------
 
