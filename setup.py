@@ -132,8 +132,8 @@ class PyTest(TestCommand):
     def run_tests(self):
         # import here, cause outside the eggs aren't loaded
         import pytest
-        errno = pytest.main('misoctl --flake8 ' +
-                            self.pytest_args)
+        args = 'misoctl --flake8 ' + self.pytest_args
+        errno = pytest.main(args.split())
         sys.exit(errno)
 
 
