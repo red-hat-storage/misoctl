@@ -119,13 +119,9 @@ As a Koji administrator:
 
       koji call addArchiveType dsc "Debian source control files" dsc
 
-4. If you are running Koji prior to 1.24, add the ``deb`` file archivetype as
-   well::
+   And the ``deb`` file archivetype as well::
 
       koji call addArchiveType deb "Debian packages" deb
-
-   This is `already available <https://pagure.io/koji/issue/2575>`_ in Koji
-   1.24.
 
 Now you can run ``misoctl upload`` as the ``rcm/debbuild`` system user.
 
