@@ -6,6 +6,8 @@ misoctl
 
 Upload Debian builds to Koji as a content generator.
 
+Note: this is experimental software, not used in production.
+
 Example
 -------
 
